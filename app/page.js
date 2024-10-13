@@ -85,7 +85,7 @@ export default function Home() {
       <h1 className="text-3xl font-bold text-center mb-8">NYT Drawing App</h1>
       {selectedImage && (
         <div className="text-center mb-8 relative">
-          <h2 className="text-lg font-bold mb-4">Today's Phrase: Art will stop WW3!</h2>
+          <h2 className="text-lg font-bold mb-4">Today&apos;s Phrase: Art will stop WW3!</h2>
           <div className="relative mx-auto w-full flex justify-center items-center">
             {/* Image with conditional visibility */}
             <div className="relative w-full h-auto max-w-full overflow-hidden">

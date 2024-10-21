@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { utils, writeFile } from 'xlsx';
 
 export async function GET(req) {
   const apiKey = process.env.NEXT_PUBLIC_NYT_API_KEY;
@@ -19,26 +18,26 @@ export async function GET(req) {
     const data = await response.json();
     console.log('NYT most popular API response received:', data);
 
-    // Prepare an array of article titles
-    const titles = data.results.map(article => [article.title]);
-    
-    // Create a new workbook and worksheet
-    const workbook = utils.book_new();
-    const worksheet = utils.aoa_to_sheet(titles); // Create sheet from array of arrays (titles)
+    // Prepare an array of article titles for CSV
+    const titles = data.results.map(article => article.title);
 
-    // Add the worksheet to the workbook
-    utils.book_append_sheet(workbook, worksheet, 'MostPopularTitles');
+    // Define the CSV content
+    const csvContent = titles.join('\n'); // Titles separated by new lines
 
-    // Define the path to save the file
-    const filePath = path.join(process.cwd(), 'NYTmostpopular.xlsx'); // Save in the project root temporarily
+    // Define the path to save the CSV file in the public directory
+    const csvDir = path.join(process.cwd(), 'public', 'csv');
+    if (!fs.existsSync(csvDir)) {
+      fs.mkdirSync(csvDir, { recursive: true });
+    }
 
+    const filePath = path.join(csvDir, 'NYTmostpopular.csv');
 
-    // Write the workbook to a file
-    writeFile(workbook, filePath);
-    console.log('Excel file written:', filePath);
+    // Write the CSV content to the file
+    fs.writeFileSync(filePath, csvContent);
+    console.log('CSV file written:', filePath);
 
     // Respond with success and the file path
-    return new Response(JSON.stringify({ message: 'Excel file created', filePath }), {
+    return new Response(JSON.stringify({ message: 'CSV file created', filePath: `/csv/NYTmostpopular.csv` }), {
       headers: { 'Content-Type': 'application/json' },
     });
 

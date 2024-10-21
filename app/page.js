@@ -9,17 +9,17 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow duration-300">
           <h2 className="text-xl font-bold mb-4">NYT Drawing App</h2>
-          <p className="mb-4">Use today's images from the NYT to create a generative art piece.</p>
+          <p className="mb-4">Use today&apos;s images from the NYT to create a generative art piece.</p>
           <Link href="/nyt1">
-            <button className="text-blue-500 hover:underline">Go to NYT Drawing App</button>
+            <button className="text-blue-500 hover:underline">Go</button>
           </Link>
         </div>
 
         <div className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow duration-300">
           <h2 className="text-xl font-bold mb-4">Other Drawing App</h2>
-          <p className="mb-4">Try out another drawing app you’ve built!</p>
+          <p className="mb-4">GenerativeNYT</p>
           <Link href="/nyt2">
-            <button className="text-blue-500 hover:underline">Go to Other Drawing App</button>
+            <button className="text-blue-500 hover:underline">Go</button>
           </Link>
         </div>
       </div>

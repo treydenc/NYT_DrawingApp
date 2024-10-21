@@ -13,7 +13,8 @@
     "node-fetch": "^3.3.2",
     "react": "^18",
     "react-dom": "^18",
-    "react-p5": "^1.4.1"
+    "react-p5": "^1.4.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "^8",

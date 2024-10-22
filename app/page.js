@@ -16,9 +16,17 @@ export default function Home() {
         </div>
 
         <div className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-xl font-bold mb-4">Other Drawing App</h2>
+          <h2 className="text-xl font-bold mb-4">Other NYT Drawing App</h2>
           <p className="mb-4">GenerativeNYT</p>
           <Link href="/nyt2">
+            <button className="text-blue-500 hover:underline">Go</button>
+          </Link>
+        </div>
+
+        <div className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-xl font-bold mb-4">Bible Text Drawing App</h2>
+          <p className="mb-4">Your Text</p>
+          <Link href="/yourText">
             <button className="text-blue-500 hover:underline">Go</button>
           </Link>
         </div>

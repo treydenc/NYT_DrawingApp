@@ -1,3 +1,4 @@
+"use client";
 import { useRef, useEffect } from 'react';
 import p5 from 'p5';
 
@@ -5,78 +6,178 @@ export default function P5Generative({ phrases, screenWidth, screenHeight }) {
   const p5ContainerRef = useRef(null);
 
   useEffect(() => {
+    let customFont;
+
     const sketch = (p) => {
-      let phraseObjects = [];
+      let wordsData = [];
+      let currentWordIndex = 0;
+      let currentRepetition = 0;
+      let lastX = 50;
+      let lastY = screenHeight / 2;
+      let minWordSpacing = 20;
 
-      // Create PhraseLine class to handle position, movement, and drawing
-      class PhraseLine {
-        constructor(phrase, x, y, speedX, speedY, angle) {
-          this.phrase = phrase;
-          this.x = x;
-          this.y = y;
-          this.speedX = speedX;
-          this.speedY = speedY;
-          this.angle = angle;
-        }
+      const preload = () => {
+        customFont = p.loadFont('/fonts/Sanford.ttf');
+      };
 
-        // Draw the phrase and move it across the screen
-        draw() {
-          p.push();
-          p.translate(this.x, this.y);
-          p.rotate(this.angle);
-          p.fill(255);
-          p.textAlign(p.CENTER, p.CENTER);
-          p.textSize(24);
-          p.text(this.phrase, 0, 0);
-          p.pop();
-
-          // Move the phrase
-          this.x += this.speedX;
-          this.y += this.speedY;
-
-          // If the phrase goes off-screen, reset it to the other side
-          if (this.x > p.width) this.x = -p.textWidth(this.phrase);
-          if (this.x < -p.textWidth(this.phrase)) this.x = p.width;
-          if (this.y > p.height) this.y = -24; // Adjust for text height
-          if (this.y < -24) this.y = p.height;
-        }
-      }
-
-      p.setup = () => {
+      const setup = () => {
         p.createCanvas(screenWidth, screenHeight);
-        p.background(0);
+        p.textFont(customFont);
+        p.textAlign(p.LEFT, p.CENTER);
+        p.frameRate(60);
+        p.background(255);
 
-        // Create PhraseLine objects with random positions, speeds, and angles
-        phrases.forEach((phrase) => {
-          let x = p.random(p.width);
-          let y = p.random(p.height);
-          let speedX = p.random(-2, 2); // Random horizontal speed
-          let speedY = p.random(-2, 2); // Random vertical speed
-          let angle = p.random(p.TWO_PI); // Random rotation angle
+        // Split phrases into words and initialize
+        const allWords = phrases
+          .join(' ')
+          .split(/\s+/)
+          .filter(word => word.length > 0);
 
-          phraseObjects.push(new PhraseLine(phrase, x, y, speedX, speedY, angle));
+        wordsData = allWords.map(word => ({
+          text: word,
+          positions: [],
+          isPlaced: false,
+          importance: calculateImportance(word),
+          repetitionsNeeded: 0,
+          currentRepetition: 0,
+          fadeStart: -1
+        }));
+
+        // Set repetitions based on importance
+        wordsData.forEach(word => {
+          word.repetitionsNeeded = Math.max(1, Math.floor(word.importance / 2));
         });
       };
 
-      p.draw = () => {
-        p.background(0); // Reset background to black
+      const calculateImportance = (word) => {
+        // Calculate importance based on word characteristics
+        const length = word.length;
+        const capitals = (word.match(/[A-Z]/g) || []).length;
+        const punctuation = (word.match(/[.,!?;:'"-]/g) || []).length;
+        
+        // Scale importance between 10-50
+        return p.constrain(
+          p.map(length + capitals * 3 + punctuation * 2, 1, 15, 10, 50),
+          10,
+          50
+        );
+      };
 
-        // Draw each phrase and move them
-        phraseObjects.forEach((phraseLine) => {
-          phraseLine.draw();
+      const calculateWordWidth = (word, size) => {
+        p.push();
+        p.textSize(size);
+        const width = p.textWidth(word) + minWordSpacing;
+        p.pop();
+        return width;
+      };
+
+      const placeWord = () => {
+        const currentWord = wordsData[currentWordIndex];
+        const fontSize = p.map(currentWord.importance, 10, 50, 16, 28);
+        const wordWidth = calculateWordWidth(currentWord.text, fontSize);
+
+        // Check if we need to start a new line
+        if (lastX + wordWidth > p.width - 50) {
+          lastX = 50;
+          lastY += 40; // line height
+          if (lastY > p.height - 40) lastY = 50;
+        }
+
+        // Add subtle vertical movement
+        const waveY = p.sin(lastX * 0.005 + p.frameCount * 0.02) * 5;
+
+        const newPos = {
+          x: lastX,
+          y: lastY + waveY,
+          size: fontSize,
+          alpha: 255,
+          birth: p.frameCount,
+          width: wordWidth
+        };
+
+        currentWord.positions.push(newPos);
+        currentWord.currentRepetition++;
+        lastX += wordWidth;
+      };
+
+      const draw = () => {
+        p.background(255, 30);
+
+        if (currentWordIndex < wordsData.length) {
+          const currentWord = wordsData[currentWordIndex];
+          
+          // Calculate speed based on importance
+          const baseSpeed = 0.2;
+          const importanceSpeed = p.map(currentWord.importance, 10, 50, 0.1, 0.8);
+          const wordsPerFrame = currentWord.currentRepetition > 1 ? 
+            importanceSpeed : 
+            baseSpeed;
+          
+          currentRepetition += wordsPerFrame;
+
+          while (currentRepetition >= 1 && currentWordIndex < wordsData.length) {
+            placeWord();
+            currentRepetition--;
+
+            if (currentWord.currentRepetition >= currentWord.repetitionsNeeded) {
+              // Start fade for current word
+              if (currentWordIndex >= 0) {
+                wordsData[currentWordIndex].fadeStart = p5.frameCount;
+                if (currentWordIndex > 0) {
+                  wordsData[currentWordIndex - 1].fadeStart = p5.frameCount;
+                }
+              }
+              currentWordIndex++;
+              currentRepetition = 0;
+            }
+          }
+        }
+
+        // Draw words with fade effect
+        wordsData.forEach((word, index) => {
+          const isCurrent = index === currentWordIndex;
+          const isPrevious = index === currentWordIndex - 1;
+
+          word.positions.forEach((pos) => {
+            p.push();
+            p.textSize(pos.size);
+
+            let alpha = 255;
+            if (!isCurrent && !isPrevious) {
+              if (word.fadeStart > -1) {
+                const fadeAge = p.frameCount - word.fadeStart;
+                alpha = p.map(fadeAge, 0, 40, 255, 0);
+                if (alpha <= 0) {
+                  p.pop();
+                  return;
+                }
+              }
+            }
+
+            // Draw shadow for current word
+            if (isCurrent) {
+              p.fill(0, alpha * 0.2);
+              p.text(word.text, pos.x + 1, pos.y + 1);
+            }
+
+            // Draw main text
+            p.fill(0, alpha);
+            p.text(word.text, pos.x, pos.y);
+
+            p.pop();
+          });
         });
       };
 
-      p.windowResized = () => {
-        p.resizeCanvas(screenWidth, screenHeight);
-      };
+      // Initialize the sketch
+      p.preload = preload;
+      p.setup = setup;
+      p.draw = draw;
     };
 
+    // Create and cleanup p5 instance
     const p5Instance = new p5(sketch, p5ContainerRef.current);
-
-    return () => {
-      p5Instance.remove();
-    };
+    return () => p5Instance.remove();
   }, [phrases, screenWidth, screenHeight]);
 
   return <div ref={p5ContainerRef} />;

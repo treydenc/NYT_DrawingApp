@@ -30,6 +30,22 @@ export default function Home() {
             <button className="text-blue-500 hover:underline">Go</button>
           </Link>
         </div>
+
+        <div className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-xl font-bold mb-4">Text</h2>
+          <p className="mb-4">Drawing with biblical texts</p>
+          <Link href="/text2">
+            <button className="text-blue-500 hover:underline">Go</button>
+          </Link>
+        </div>
+
+        <div className="p-6 border rounded-md shadow-md hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-xl font-bold mb-4">Scene</h2>
+          <p className="mb-4">Drawing with biblical texts</p>
+          <Link href="/scene">
+            <button className="text-blue-500 hover:underline">Go</button>
+          </Link>
+        </div>
       </div>
     </div>
   );
